@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION", "UnstableApiUsage")
+
 import com.template.android.buildsrc.Configs
 import com.template.android.buildsrc.Dependencies
 import com.template.android.buildsrc.Properties
@@ -15,26 +17,22 @@ plugins {
 android {
     signingConfigs {
         create("release") {
-//            keyAlias = Properties.getKeystoreValue("keyAlias")
-//            keyPassword = Properties.getKeystoreValue("keyPassword")
-//            storeFile = file(Properties.getKeystoreValue("storeFile"))
-//            storePassword = Properties.getKeystoreValue("storePassword")
+            keyAlias = Properties.getKeystoreValue("KEY_ALIAS")
+            keyPassword = Properties.getKeystoreValue("KEY_PASSWORD")
+            storeFile = file(Properties.getKeystoreValue("STORE_FILE"))
+            storePassword = Properties.getKeystoreValue("STORE_PASSWORD")
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
-
     namespace = Configs.applicationId
     compileSdk = Configs.compileSdk
-
     defaultConfig {
         applicationId = Configs.applicationId
         minSdk = Configs.minSdk
         targetSdk = Configs.targetSdk
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
-
+        vectorDrawables.useSupportLibrary = true
         Properties.commonProperties.onEach { parameter ->
             buildConfigField(
                 "String",
@@ -43,8 +41,6 @@ android {
             )
         }
     }
-
-    @Suppress("UnstableApiUsage")
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
@@ -56,7 +52,6 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
-    @Suppress("UnstableApiUsage")
     flavorDimensions.addAll(listOf(Configs.dimension))
     productFlavors {
         create("develop") {
@@ -106,14 +101,12 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
-    @Suppress("UnstableApiUsage")
     buildFeatures {
         compose = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = Versions.compose
     }
-    @Suppress("DEPRECATION")
     packagingOptions {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
