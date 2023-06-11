@@ -24,7 +24,10 @@ allprojects {
                 "-opt-in=com.google.accompanist.pager.ExperimentalPagerApi",
                 "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi",
                 "-Xjvm-default=all",
-                "-opt-in=kotlin.RequiresOptIn"
+                "-opt-in=kotlin.RequiresOptIn",
+                "-opt-in=splitties.experimental.ExperimentalSplittiesApi",
+                "-opt-in=splitties.lifecycle.coroutines.PotentialFutureAndroidXLifecycleKtxApi",
+                "-opt-in=com.beepiz.bluetooth.gattcoroutines.ExperimentalBleGattCoroutinesCoroutinesApi"
             )
         }
     }

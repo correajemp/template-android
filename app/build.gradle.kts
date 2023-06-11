@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION", "UnstableApiUsage")
+@file:Suppress("UnstableApiUsage")
 
 import com.template.android.buildsrc.Configs
 import com.template.android.buildsrc.Dependencies
@@ -107,10 +107,8 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = Versions.compose
     }
-    packagingOptions {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
+    packaging {
+        resources.excludes.add("META-INF/*")
     }
 }
 

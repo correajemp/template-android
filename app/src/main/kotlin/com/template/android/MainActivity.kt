@@ -1,46 +1,143 @@
 package com.template.android
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.template.android.ui.theme.AndroidTemplateTheme
+import androidx.activity.result.contract.ActivityResultContracts
+import com.template.android.utils.BleClient
+import com.template.android.utils.BlePermissionHelper
+import com.template.android.utils.BleServer
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            AndroidTemplateTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    Greeting("Android")
-                }
+
+    private val bleClient by lazy {
+        BleClient(this)
+    }
+
+    private val bleServer by lazy {
+        BleServer(this)
+    }
+
+    private val requestPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (permissions[Manifest.permission.BLUETOOTH] == true &&
+                permissions[Manifest.permission.BLUETOOTH_ADMIN] == true &&
+                permissions[Manifest.permission.BLUETOOTH_CONNECT] == true &&
+                permissions[Manifest.permission.BLUETOOTH_SCAN] == true &&
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true &&
+                permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION] == true
+            ) {
+                bleClient.startScanAndConnect()
+                bleServer.startGattServer()
+            } else {
+                Log.d("MainActivity", "Permission Denied")
             }
+            return@registerForActivityResult
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (permissions[Manifest.permission.BLUETOOTH] == true &&
+                permissions[Manifest.permission.BLUETOOTH_ADMIN] == true &&
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true &&
+                permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION] == true
+            ) {
+                bleClient.startScanAndConnect()
+                bleServer.startGattServer()
+            } else {
+                Log.d("MainActivity", "Permission Denied")
+            }
+            return@registerForActivityResult
+        }
+
+        if (permissions[Manifest.permission.BLUETOOTH] == true &&
+            permissions[Manifest.permission.BLUETOOTH_ADMIN] == true &&
+            permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        ) {
+            bleClient.startScanAndConnect()
+            bleServer.startGattServer()
+        } else {
+            Log.d("MainActivity", "Permission Denied")
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AndroidTemplateTheme {
-        Greeting("Android")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            BlePermissionHelper.requestPermissionSdk31(
+                context = this,
+                hasPermissionCallback = {
+                    bleClient.startScanAndConnect()
+                    bleServer.startGattServer()
+                },
+                requestPermissionsLauncherCallback = {
+                    requestPermissionsLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.BLUETOOTH,
+                            Manifest.permission.BLUETOOTH_ADMIN,
+                            Manifest.permission.BLUETOOTH_CONNECT,
+                            Manifest.permission.BLUETOOTH_SCAN,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        )
+                    )
+                }
+            )
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            BlePermissionHelper.requestPermissionSdk29(
+                context = this,
+                hasPermissionCallback = {
+                    bleClient.startScanAndConnect()
+                    bleServer.startGattServer()
+                },
+                requestPermissionsLauncherCallback = {
+                    requestPermissionsLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.BLUETOOTH,
+                            Manifest.permission.BLUETOOTH_ADMIN,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        )
+                    )
+                }
+            )
+            return
+        }
+
+        BlePermissionHelper.requestPermissionSdk28(
+            context = this,
+            hasPermissionCallback = {
+                bleClient.startScanAndConnect()
+                bleServer.startGattServer()
+            },
+            requestPermissionsLauncherCallback = {
+                requestPermissionsLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.BLUETOOTH,
+                        Manifest.permission.BLUETOOTH_ADMIN,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        )
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        bleClient.disconnect()
+        bleServer.stopGattServer()
     }
 }
